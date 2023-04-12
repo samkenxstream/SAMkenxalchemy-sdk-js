@@ -28,11 +28,16 @@ information for ALL pending transactions that are added to the mempool.
 
 • `Optional` **fromAddress**: `string` \| `string`[]
 
-Filter pending transactions sent FROM the provided address or array of addresses.
+Filter pending transactions sent FROM the provided address or array of
+addresses.
+
+If a [AlchemyPendingTransactionsEventFilter.toAddress](AlchemyPendingTransactionsEventFilter.md#toaddress) is also
+present, then this filter will return transactions sent from the
+`fromAddress` OR transactions received by the `toAddress`.
 
 #### Defined in
 
-[src/types/types.ts:1697](https://github.com/alchemyplatform/alchemy-sdk-js/blob/aeb51c8/src/types/types.ts#L1697)
+[src/types/types.ts:1739](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L1739)
 
 ___
 
@@ -49,7 +54,7 @@ response as subscribing to `newPendingTransactions`.
 
 #### Defined in
 
-[src/types/types.ts:1710](https://github.com/alchemyplatform/alchemy-sdk-js/blob/aeb51c8/src/types/types.ts#L1710)
+[src/types/types.ts:1759](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L1759)
 
 ___
 
@@ -59,7 +64,7 @@ ___
 
 #### Defined in
 
-[src/types/types.ts:1694](https://github.com/alchemyplatform/alchemy-sdk-js/blob/aeb51c8/src/types/types.ts#L1694)
+[src/types/types.ts:1729](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L1729)
 
 ___
 
@@ -67,8 +72,13 @@ ___
 
 • `Optional` **toAddress**: `string` \| `string`[]
 
-Filter pending transactions sent TO the provided address or array of addresses.
+Filter pending transactions sent TO the provided address or array of
+addresses.
+
+If a [AlchemyPendingTransactionsEventFilter.fromAddress](AlchemyPendingTransactionsEventFilter.md#fromaddress) is also
+present, then this filter will return transactions sent from the
+`fromAddress` OR transactions received by the `toAddress`.
 
 #### Defined in
 
-[src/types/types.ts:1700](https://github.com/alchemyplatform/alchemy-sdk-js/blob/aeb51c8/src/types/types.ts#L1700)
+[src/types/types.ts:1749](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L1749)

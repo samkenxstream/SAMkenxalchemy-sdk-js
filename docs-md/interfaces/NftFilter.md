@@ -2,7 +2,7 @@
 
 # Interface: NftFilter
 
-NFT to track on a [NftActivityWebhook](NftActivityWebhook.md).
+NFT to track on a [NftActivityWebhook](NftActivityWebhook.md) or [NftMetadataUpdateWebhook](NftMetadataUpdateWebhook.md).
 
 ## Table of contents
 
@@ -21,17 +21,17 @@ The contract address of the NFT.
 
 #### Defined in
 
-[src/types/types.ts:2217](https://github.com/alchemyplatform/alchemy-sdk-js/blob/aeb51c8/src/types/types.ts#L2217)
+[src/types/types.ts:2307](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L2307)
 
 ___
 
 ### tokenId
 
-• `Optional` **tokenId**: `BigNumberish`
+• `Optional` **tokenId**: [`BigNumberish`](../modules.md#bignumberish)
 
 The token id of the NFT to track. If this field is omitted, defaults to
 tracking all NFTs for the provided contract address.
 
 #### Defined in
 
-[src/types/types.ts:2222](https://github.com/alchemyplatform/alchemy-sdk-js/blob/aeb51c8/src/types/types.ts#L2222)
+[src/types/types.ts:2312](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L2312)

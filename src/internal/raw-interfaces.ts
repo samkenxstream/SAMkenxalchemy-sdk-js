@@ -254,6 +254,13 @@ export interface RawAddressActivityResponse {
   pagination: RawWebhookPagination;
 }
 
+export interface RawCustomGraphqlWebhookConfig {
+  data: {
+    webhook_id: string;
+    graphql_query: string;
+  };
+}
+
 export interface RawNftFilter {
   contract_address: string;
   token_id: string;
@@ -312,8 +319,9 @@ export interface RawContractForOwner
   address: string;
   totalBalance: number;
   numDistinctTokensOwned: number;
+  title: string;
   isSpam: boolean;
   tokenId: string;
-  media: Media;
+  media: Media[];
   opensea?: RawOpenSeaCollectionMetadata;
 }

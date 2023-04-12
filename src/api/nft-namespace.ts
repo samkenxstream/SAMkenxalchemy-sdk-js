@@ -4,6 +4,7 @@ import {
   checkNftOwnership,
   computeRarity,
   getContractMetadata,
+  getContractMetadataBatch,
   getContractsForOwner,
   getFloorPrice,
   getMintedNfts,
@@ -43,6 +44,7 @@ import {
   GetOwnersForContractResponse,
   GetOwnersForContractWithTokenBalancesOptions,
   GetOwnersForContractWithTokenBalancesResponse,
+  GetOwnersForNftOptions,
   GetOwnersForNftResponse,
   GetTransfersForContractOptions,
   GetTransfersForOwnerOptions,
@@ -145,13 +147,24 @@ export class NftNamespace {
   }
 
   /**
-   * Get the NFT collection metadata associated with the provided parameters.
+   * Get the NFT contract metadata associated with the provided parameters.
    *
    * @param contractAddress - The contract address of the NFT.
    * @public
    */
   getContractMetadata(contractAddress: string): Promise<NftContract> {
     return getContractMetadata(this.config, contractAddress);
+  }
+
+  /**
+   * Get the NFT contract metadata for multiple NFT contracts in a single request.
+   *
+   * @param contractAddresses - An array of contract addresses to fetch metadata for.
+   */
+  getContractMetadataBatch(
+    contractAddresses: string[]
+  ): Promise<NftContract[]> {
+    return getContractMetadataBatch(this.config, contractAddresses);
   }
 
   /**
@@ -341,13 +354,15 @@ export class NftNamespace {
    *
    * @param contractAddress - The NFT contract address.
    * @param tokenId - Token id of the NFT.
+   * @param options - Optional parameters to use for the request.
    * @beta
    */
   getOwnersForNft(
     contractAddress: string,
-    tokenId: BigNumberish
+    tokenId: BigNumberish,
+    options?: GetOwnersForNftOptions
   ): Promise<GetOwnersForNftResponse> {
-    return getOwnersForNft(this.config, contractAddress, tokenId);
+    return getOwnersForNft(this.config, contractAddress, tokenId, options);
   }
 
   /**

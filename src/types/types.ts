@@ -7,6 +7,8 @@ import { BigNumberish } from '@ethersproject/bignumber';
 
 import { BaseNft, Nft, NftContract } from '../api/nft';
 
+export * from './ethers-types';
+
 // TODO: separate this file into other files.
 
 /**
@@ -80,6 +82,7 @@ export enum Network {
   ETH_KOVAN = 'eth-kovan',
   /** @deprecated - Will be removed in subsequent versions */
   ETH_RINKEBY = 'eth-rinkeby',
+  ETH_SEPOLIA = 'eth-sepolia',
   OPT_MAINNET = 'opt-mainnet',
   /** @deprecated - Will be removed in subsequent versions */
   OPT_KOVAN = 'opt-kovan',
@@ -393,6 +396,8 @@ export enum AssetTransfersOrder {
 export enum NftTokenType {
   ERC721 = 'ERC721',
   ERC1155 = 'ERC1155',
+  NO_SUPPORTED_NFT_STANDARD = 'NO_SUPPORTED_NFT_STANDARD',
+  NOT_A_CONTRACT = 'NOT_A_CONTRACT',
   UNKNOWN = 'UNKNOWN'
 }
 
@@ -822,6 +827,9 @@ export interface OwnedBaseNft extends BaseNft {
 export interface GetOwnersForNftResponse {
   /** An array of owner addresses for the provided token. */
   readonly owners: string[];
+
+  /** Optional The key for the next page of results, if applicable. */
+  readonly pageKey?: string;
 }
 
 /**
@@ -976,6 +984,12 @@ export interface GetContractsForOwnerOptions {
   pageKey?: string;
 
   /**
+   * Configure the number of NFTs to return in each response. Maximum pages size
+   * is 100. Defaults to 100.
+   */
+  pageSize?: number;
+
+  /**
    * Optional list of filters applied to the query. NFTs that match one or more
    * of these filters are included in the response. May not be used in
    * conjunction with {@link excludeFilters}.
@@ -1021,6 +1035,9 @@ export interface ContractForOwner extends NftContract {
    */
   totalBalance: number;
 
+  /** The title of the token held by the owner. */
+  title: string;
+
   /**
    * Number of distinct token IDs held by the owner. For non-fungible tokens
    * this will be equal to the totalBalance, but it may be lower if the user
@@ -1034,7 +1051,7 @@ export interface ContractForOwner extends NftContract {
   tokenId: string;
 
   /** Alternative NFT metadata for this contract to be parsed manually. */
-  media: Media;
+  media: Media[];
 }
 
 /**
@@ -1585,6 +1602,24 @@ export interface GetOwnersForContractWithTokenBalancesOptions {
 }
 
 /**
+ * Optional parameters object for the {@link getOwnersForNft} method.
+ *
+ * This interface configures options when fetching the owner addresses of the
+ * provided NFT contract.
+ *
+ * @public
+ */
+export interface GetOwnersForNftOptions {
+  /** Optional page key to paginate the next page for large requests. */
+  pageKey?: string;
+
+  /**
+   * Sets the total number of owners to return in the response.
+   */
+  pageSize?: number;
+}
+
+/**
  * The response object for the {@link getNftsForContract} function. The object
  * contains the NFTs without metadata inside the NFT contract.
  *
@@ -1693,10 +1728,24 @@ export enum AlchemySubscription {
 export interface AlchemyPendingTransactionsEventFilter {
   method: AlchemySubscription.PENDING_TRANSACTIONS;
 
-  /** Filter pending transactions sent FROM the provided address or array of addresses. */
+  /**
+   * Filter pending transactions sent FROM the provided address or array of
+   * addresses.
+   *
+   * If a {@link AlchemyPendingTransactionsEventFilter.toAddress} is also
+   * present, then this filter will return transactions sent from the
+   * `fromAddress` OR transactions received by the `toAddress`.
+   */
   fromAddress?: string | string[];
 
-  /** Filter pending transactions sent TO the provided address or array of addresses. */
+  /**
+   * Filter pending transactions sent TO the provided address or array of
+   * addresses.
+   *
+   * If a {@link AlchemyPendingTransactionsEventFilter.fromAddress} is also
+   * present, then this filter will return transactions sent from the
+   * `fromAddress` OR transactions received by the `toAddress`.
+   */
   toAddress?: string | string[];
 
   /**
@@ -2101,7 +2150,9 @@ export enum WebhookType {
   MINED_TRANSACTION = 'MINED_TRANSACTION',
   DROPPED_TRANSACTION = 'DROPPED_TRANSACTION',
   ADDRESS_ACTIVITY = 'ADDRESS_ACTIVITY',
-  NFT_ACTIVITY = 'NFT_ACTIVITY'
+  NFT_ACTIVITY = 'NFT_ACTIVITY',
+  NFT_METADATA_UPDATE = 'NFT_METADATA_UPDATE',
+  GRAPHQL = 'GRAPHQL'
 }
 
 /**
@@ -2140,6 +2191,25 @@ export interface NftActivityWebhook extends Webhook {
   type: WebhookType.NFT_ACTIVITY;
 }
 
+/**
+ * The NFT Metadata Update Webhook tracks all ERC721 and ERC1155 metadata updates.
+ * This can be used to notify your app with real time state changes when an NFT's
+ * metadata changes.
+ */
+export interface NftMetadataUpdateWebhook extends Webhook {
+  type: WebhookType.NFT_METADATA_UPDATE;
+}
+
+/**
+ * The Custom Webhook can track any event on every block (think transfers, staking,
+ * minting, burning, approvals, etc.)
+ * This can be used to notify your app with real time changes whenever an
+ * EOA or a smart contract performs any action on-chain.
+ */
+export interface CustomGraphqlWebhook extends Webhook {
+  type: WebhookType.GRAPHQL;
+}
+
 /** The response for a {@link NotifyNamespace.getAllWebhooks} method. */
 export interface GetAllWebhooksResponse {
   /** All webhooks attached to the provided auth token. */
@@ -2167,6 +2237,12 @@ export interface AddressActivityResponse {
   pageKey?: string;
 }
 
+/** Response object for the {@link NotifyNamespace.getGraphqlQuery} method. */
+export interface CustomGraphqlWebhookConfig {
+  /** The graphql query for the webhook. */
+  graphqlQuery: string;
+}
+
 /**
  * Params to pass in when calling {@link NotifyNamespace.createWebhook} in order
  * to create a {@link MinedTransactionWebhook} or {@link DroppedTransactionWebhook}.
@@ -2185,11 +2261,25 @@ export interface TransactionWebhookParams {
 
 /**
  * Params to pass in when calling {@link NotifyNamespace.createWebhook} in order
- * to create a {@link NftActivityWebhook}.
+ * to create a {@link NftActivityWebhook} or {@link NftMetadataUpdateWebhook}.
  */
 export interface NftWebhookParams {
   /** Array of NFT filters the webhook should track. */
   filters: NftFilter[];
+  /**
+   * Optional network to create the webhook on. If omitted, the webhook will be
+   * created on network of the app provided in the api key config.
+   */
+  network?: Network;
+}
+
+/**
+ * Params to pass in when calling {@link NotifyNamespace.createWebhook} in order
+ * to create a {@link CustomGraphqlWebhook}
+ */
+export interface CustomGraphqlWebhookParams {
+  /** GraphQL query */
+  graphqlQuery: string;
   /**
    * Optional network to create the webhook on. If omitted, the webhook will be
    * created on network of the app provided in the api key config.
@@ -2211,7 +2301,7 @@ export interface AddressWebhookParams {
   network?: Network;
 }
 
-/** NFT to track on a {@link NftActivityWebhook}. */
+/** NFT to track on a {@link NftActivityWebhook} or {@link NftMetadataUpdateWebhook}. */
 export interface NftFilter {
   /** The contract address of the NFT. */
   contractAddress: string;
@@ -2254,6 +2344,17 @@ export interface WebhookNftFilterUpdate {
 
 /**
  * Params object when calling {@link NotifyNamespace.updateWebhook} to add and
+ * remove NFT filters for a {@link NftMetadataUpdateWebhook}.
+ */
+export interface WebhookNftMetadataFilterUpdate {
+  /** The filters to additionally track. */
+  addMetadataFilters: NftFilter[];
+  /** Existing filters to remove. */
+  removeMetadataFilters: NftFilter[];
+}
+
+/**
+ * Params object when calling {@link NotifyNamespace.updateWebhook} to add and
  * remove addresses for a {@link AddressActivityWebhook}.
  */
 export interface WebhookAddressUpdate {
@@ -2276,10 +2377,23 @@ export interface WebhookAddressOverride {
  * Params object when calling {@link NotifyNamespace.updateWebhook} to update a
  * {@link NftActivityWebhook}.
  */
-
 export type NftWebhookUpdate =
   | WebhookStatusUpdate
   | RequireAtLeastOne<WebhookNftFilterUpdate>;
+
+/**
+ * Params object when calling {@link NotifyNamespace.updateWebhook} to update a
+ * {@link NftMetadataUpdateWebhook}.
+ */
+export type NftMetadataWebhookUpdate =
+  | WebhookStatusUpdate
+  | RequireAtLeastOne<WebhookNftMetadataFilterUpdate>;
+
+/**
+ * Params object when calling {@link NotifyNamespace.updateWebhook} to update a
+ * {@link CustomGraphqlWebhook}.
+ */
+export type CustomGraphqlWebhookUpdate = WebhookStatusUpdate;
 
 /**
  * Params object when calling {@link NotifyNamespace.updateWebhook} to update a
@@ -2327,13 +2441,13 @@ export enum CommitmentLevel {
   /**
    * The most recent crypto-economically secure block that cannot be re-orged
    * outside of manual intervention driven by community coordination. This is
-   * only available on {@link Network.ETH_GOERLI}.
+   * only available on {@link Network.ETH_GOERLI} and {@link Network.ETH_SEPOLIA}.
    */
   SAFE = 'safe',
   /**
    * The most recent secure block that has been accepted by >2/3 of validators.
    * This block is very unlikely to be re-orged. This is only available on
-   * {@link Network.ETH_GOERLI}.
+   * {@link Network.ETH_GOERLI} and {@link Network.ETH_SEPOLIA}.
    */
   FINALIZED = 'finalized',
   /**

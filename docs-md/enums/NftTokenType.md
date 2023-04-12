@@ -10,6 +10,8 @@ An enum for specifying the token type on NFTs.
 
 - [ERC1155](NftTokenType.md#erc1155)
 - [ERC721](NftTokenType.md#erc721)
+- [NOT\_A\_CONTRACT](NftTokenType.md#not_a_contract)
+- [NO\_SUPPORTED\_NFT\_STANDARD](NftTokenType.md#no_supported_nft_standard)
 - [UNKNOWN](NftTokenType.md#unknown)
 
 ## Enumeration members
@@ -20,7 +22,7 @@ An enum for specifying the token type on NFTs.
 
 #### Defined in
 
-[src/types/types.ts:395](https://github.com/alchemyplatform/alchemy-sdk-js/blob/aeb51c8/src/types/types.ts#L395)
+[src/types/types.ts:398](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L398)
 
 ___
 
@@ -30,7 +32,27 @@ ___
 
 #### Defined in
 
-[src/types/types.ts:394](https://github.com/alchemyplatform/alchemy-sdk-js/blob/aeb51c8/src/types/types.ts#L394)
+[src/types/types.ts:397](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L397)
+
+___
+
+### NOT\_A\_CONTRACT
+
+• **NOT\_A\_CONTRACT** = `"NOT_A_CONTRACT"`
+
+#### Defined in
+
+[src/types/types.ts:400](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L400)
+
+___
+
+### NO\_SUPPORTED\_NFT\_STANDARD
+
+• **NO\_SUPPORTED\_NFT\_STANDARD** = `"NO_SUPPORTED_NFT_STANDARD"`
+
+#### Defined in
+
+[src/types/types.ts:399](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L399)
 
 ___
 
@@ -40,4 +62,4 @@ ___
 
 #### Defined in
 
-[src/types/types.ts:396](https://github.com/alchemyplatform/alchemy-sdk-js/blob/aeb51c8/src/types/types.ts#L396)
+[src/types/types.ts:401](https://github.com/alchemyplatform/alchemy-sdk-js/blob/e62e5c7/src/types/types.ts#L401)

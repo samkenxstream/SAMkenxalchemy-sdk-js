@@ -48,6 +48,7 @@ import {
   TransfersNftResponse
 } from '../types/types';
 import { AlchemyApiType, ETH_NULL_ADDRESS } from '../util/const';
+import { sanitizeTokenType } from '../util/inputSanitization';
 import {
   getBaseNftFromRaw,
   getContractsForOwnerFromRaw,
@@ -101,10 +102,7 @@ export async function getNftMetadata(
     {
       contractAddress,
       tokenId: BigNumber.from(tokenId!).toString(),
-      tokenType:
-        options?.tokenType !== NftTokenType.UNKNOWN
-          ? options?.tokenType
-          : undefined,
+      tokenType: sanitizeTokenType(options?.tokenType),
       tokenUriTimeoutInMs: options?.tokenUriTimeoutInMs,
       refreshCache: options?.refreshCache
     }
@@ -149,6 +147,25 @@ export async function getContractMetadata(
   });
 
   return getNftContractFromRaw(response);
+}
+
+export async function getContractMetadataBatch(
+  config: AlchemyConfig,
+  contractAddresses: string[]
+): Promise<NftContract[]> {
+  const response = await requestHttpWithBackoff<{}, RawNftContract[]>(
+    config,
+    AlchemyApiType.NFT,
+    'getContractMetadataBatch',
+    'getContractMetadataBatch',
+    {},
+    {
+      method: 'POST',
+      data: { contractAddresses }
+    }
+  );
+
+  return response.map(getNftContractFromRaw);
 }
 
 export async function* getNftsForOwnerIterator(
@@ -310,6 +327,7 @@ export async function getContractsForOwner(
     excludeFilters: options?.excludeFilters,
     includeFilters: options?.includeFilters,
     pageKey: options?.pageKey,
+    pageSize: options?.pageSize,
     orderBy: options?.orderBy
   });
 
@@ -320,6 +338,7 @@ export async function getOwnersForNft(
   config: AlchemyConfig,
   contractAddress: string,
   tokenId: BigNumberish,
+  options?: GetOwnersForContractOptions,
   srcMethod = 'getOwnersForNft'
 ): Promise<GetOwnersForNftResponse> {
   return requestHttpWithBackoff(
@@ -329,7 +348,8 @@ export async function getOwnersForNft(
     srcMethod,
     {
       contractAddress,
-      tokenId: BigNumber.from(tokenId!).toString()
+      tokenId: BigNumber.from(tokenId!).toString(),
+      ...options
     }
   );
 }
@@ -884,6 +904,16 @@ interface GetNftsAlchemyParams {
 }
 
 /**
+ * NftTokenTypes that are allowed as request inputs.
+ *
+ * @internal
+ */
+export type InputNftTokenType =
+  | NftTokenType.ERC1155
+  | NftTokenType.ERC721
+  | undefined;
+
+/**
  * Interface for the `getNftMetadata` endpoint.
  *
  * @internal
@@ -891,7 +921,7 @@ interface GetNftsAlchemyParams {
 interface GetNftMetadataParams {
   contractAddress: string;
   tokenId: string;
-  tokenType?: NftTokenType;
+  tokenType?: InputNftTokenType;
   refreshCache?: boolean;
   tokenUriTimeoutInMs?: number;
 }
@@ -931,6 +961,7 @@ interface GetOwnersForNftContractAlchemyParams {
 interface GetContractsForOwnerParams {
   owner: string;
   pageKey?: string;
+  pageSize?: number;
   includeFilters?: NftFilters[];
   excludeFilters?: NftFilters[];
   orderBy?: NftOrdering;

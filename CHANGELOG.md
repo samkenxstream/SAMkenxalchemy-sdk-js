@@ -6,11 +6,67 @@
 
 ### Minor Changes
 
+## 2.7.0
+
+### Major Changes
+
+- Added `CustomGraphqlWebhook` to be used with the `NotifyNamespace`. This webhook uses graphql to track any event on every block.
+
+### Minor Changes
+
+## 2.6.3
+
+### Major Changes
+
+### Minor Changes
+
+- Added support for a `pageKey` and `pageSize` parameter in `NftNamespace.getOwnersforNft` to allow for pagination of the results.
+
+## 2.6.2
+
+### Major Changes
+
+### Minor Changes
+
+- Added additional descriptive tokenTypes in NFT- and contract-level metadata, for contracts which don't support any NFT standard.
+
+## 2.6.1
+
+### Major Changes
+
+### Minor Changes
+
+- Added the `title` field to `ContractForOwner` to represent the title of the token held by the owner.
+- Fixed a bug where the `media` field in `ContractForOwner` was a `Media` object rather than a `Media[]` array.
+- Added support for the Eth Sepolia network via the `Network.ETH_SEPOLIA` enum.
+
+## 2.6.0
+
+### Major Changes
+
+- Added the `NftMetadataUpdateWebhook` to be used with the `NotifyNamespace`. This webhook tracks all ERC721 and ERC1155 token metadata updates.
+
+### Minor Changes
+
+## 2.5.0
+
+### Major Changes
+
+- Added `TransactNamespace.simulateAssetChangesBundle()` to simulate a list of transactions in sequence and return a list of asset changes.
+- Added `TransactNamespace.simulateExecutionBundle()` to simulate a list of transactions in sequence and return a list of decoded logs and traces.
+- Added `NftNamespace.getContractMetadataBatch()` to get the metadata associated with multiple NFT contracts in a single request.
+
+### Minor Changes
+
+- Added exports for Ethers.js types and interfaces used by the SDK.
+- Added the `pageSize` parameter to the `NftNamespace.getContractsForOwner()` method.
+
 ## 2.4.3
 
 ### Major Changes
 
 ### Minor Changes
+
 - Added a missing `gas` field in the `DebugTransaction` interface to specify the gas provided for a transaction execution.
 - Fixed a bug with `NftNamespace.getMintedNfts()`, `NftNamespace.getTransfersForOwner()`, and `NftNamespace.getTransfersForContract()` where the method would incorrectly error if the specified address had no transfers.
 - Added the `BigNumber` ethers export. You can access this by importing `BigNumber` along with the other exports in the package.
@@ -20,6 +76,7 @@
 ### Major Changes
 
 ### Minor Changes
+
 - Added the `CoreNamespace.getTokensForOwner()` method to get all the token balances and token metadata for a given address.
 - Added the `wyvern` and `cryptopunks` marketplaces in the `NftSaleMarketplace` enum to the `NftNamespace.getNftSales()` method.
 - Added the `blockHash` field to the `OwnedNftsResponse` returned by `NftNamespace.getNftsForOwner()` to track the block hash that the request was based on.
@@ -29,6 +86,7 @@
 ### Major Changes
 
 ### Minor Changes
+
 - Added the `NftNamespace.getTransfersForOwner()` method to get all NFT transfers to or from a provided owner address.
 - Added the `NftNamespace.getTransfersForContract()` method to all the NFT transfers for a provided NFT contract address.
 - Deprecated the `GetMintedNftsResponse` interface in favor of the `TransfersNftResponse`. The `TransfersNftResponse` contains the same properties as the `GetMintedNftsResponse` and includes additional fields about the transfer.
@@ -140,7 +198,7 @@
 - Added the `AIDROPS` enum to `NftNamespace.getNftsForOwner()`.
 - Added the `spamInfo` field to the response for `getNftsForOwner()` and `getNftsForContract()`.
 - Fixed a bug where type declarations were not available when using `NodeNext` module resolution. Thanks @quentinverlhac!
-- Marked Ropsten, Rinkeby, and Kovan `Network` enums as deprecated. Please switch over to Goerli.
+- Marked Ropsten, Rinkeby, and Kovan `Network` enums as deprecated. Please switch over to Sepolia.
 
 ## 2.1.0
 

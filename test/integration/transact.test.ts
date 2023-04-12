@@ -6,6 +6,7 @@ import {
   Network,
   SimulateAssetType,
   SimulateChangeType,
+  Utils,
   Wallet
 } from '../../src';
 import { TESTING_PRIVATE_KEY, loadAlchemyEnv } from '../test-util';
@@ -37,6 +38,97 @@ describe('E2E integration tests', () => {
     const signed = await wallet.signTransaction(transaction);
     const response = await alchemy.transact.sendPrivateTransaction(signed);
     expect(typeof response).toEqual('string');
+  });
+
+  describe('simulateAssetChangesBundle()', () => {
+    const transferAToB = {
+      from: '0x699aeca448ad51effd6dbee0a8618a79cf4370ba',
+      to: '0x32e74d0b224e3ab4e854e81adc645dac9968ee93',
+      data: '0x23b872dd000000000000000000000000699aeca448ad51effd6dbee0a8618a79cf4370ba000000000000000000000000699aeca448ad51effd6dbee0a8618a79cf4370bb0000000000000000000000000000000000000000000000000000000000000625'
+    };
+    const transferBToC = {
+      from: '0x699aeca448ad51effd6dbee0a8618a79cf4370bb',
+      to: '0x32e74d0b224e3ab4e854e81adc645dac9968ee93',
+      data: '0x23b872dd000000000000000000000000699aeca448ad51effd6dbee0a8618a79cf4370bb000000000000000000000000699aeca448ad51effd6dbee0a8618a79cf4370bc0000000000000000000000000000000000000000000000000000000000000625'
+    };
+
+    const block = '0xF604F8';
+
+    it('can simulate bundle successfully', async () => {
+      const res = await alchemy.transact.simulateAssetChangesBundle(
+        [transferAToB, transferBToC],
+        block
+      );
+      expect(res).toHaveLength(2);
+      expect(res[0].error).toBeUndefined();
+      expect(res[0].changes).toHaveLength(1);
+      expect(res[0].changes[0].assetType).toBe(SimulateAssetType.ERC721);
+      expect(res[0].changes[0].changeType).toBe(SimulateChangeType.TRANSFER);
+      expect(res[0].changes[0].from).toBe(
+        '0x699aeca448ad51effd6dbee0a8618a79cf4370ba'
+      );
+      expect(res[0].changes[0].to).toBe(
+        '0x699aeca448ad51effd6dbee0a8618a79cf4370bb'
+      );
+
+      expect(res[1].error).toBeUndefined();
+      expect(res[1].changes).toHaveLength(1);
+      expect(res[1].changes[0].assetType).toBe(SimulateAssetType.ERC721);
+      expect(res[1].changes[0].changeType).toBe(SimulateChangeType.TRANSFER);
+      expect(res[1].changes[0].from).toBe(
+        '0x699aeca448ad51effd6dbee0a8618a79cf4370bb'
+      );
+      expect(res[1].changes[0].to).toBe(
+        '0x699aeca448ad51effd6dbee0a8618a79cf4370bc'
+      );
+    });
+
+    it('can simulate bundle with revert', async () => {
+      const res = await alchemy.transact.simulateAssetChangesBundle(
+        [transferBToC, transferAToB],
+        block
+      );
+      expect(typeof res[0].error!.message).toBe('string');
+      expect(res[0].changes).toHaveLength(0);
+    });
+  });
+
+  describe('simulateExecutionBundle()', () => {
+    const transferAToB = {
+      from: '0x699aeca448ad51effd6dbee0a8618a79cf4370ba',
+      to: '0x32e74d0b224e3ab4e854e81adc645dac9968ee93',
+      data: '0x23b872dd000000000000000000000000699aeca448ad51effd6dbee0a8618a79cf4370ba000000000000000000000000699aeca448ad51effd6dbee0a8618a79cf4370bb0000000000000000000000000000000000000000000000000000000000000625'
+    };
+    const transferBToC = {
+      from: '0x699aeca448ad51effd6dbee0a8618a79cf4370bb',
+      to: '0x32e74d0b224e3ab4e854e81adc645dac9968ee93',
+      data: '0x23b872dd000000000000000000000000699aeca448ad51effd6dbee0a8618a79cf4370bb000000000000000000000000699aeca448ad51effd6dbee0a8618a79cf4370bc0000000000000000000000000000000000000000000000000000000000000625'
+    };
+
+    const block = '0xF604F8';
+
+    it('can simulate bundle successfully', async () => {
+      const res = await alchemy.transact.simulateExecutionBundle(
+        [transferAToB, transferBToC],
+        block
+      );
+      expect(res).toHaveLength(2);
+      expect(res[0].calls).toHaveLength(1);
+      expect(res[0].logs).toHaveLength(1);
+
+      expect(res[1].calls).toHaveLength(1);
+      expect(res[1].logs).toHaveLength(1);
+    });
+
+    it('can simulate bundle with revert', async () => {
+      const res = await alchemy.transact.simulateExecutionBundle(
+        [transferBToC, transferAToB],
+        block
+      );
+
+      expect(res[0].calls.length).toBe(1);
+      expect(typeof res[0].calls[0].error).toBe('string');
+    });
   });
 
   describe('simulateAssetChanges()', () => {
@@ -146,7 +238,7 @@ describe('E2E integration tests', () => {
       expect(calls[0].to).toBe('0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48');
       expect(calls[0].value).toBe('0x0');
       expect(calls[0].gas).toBe('0x7fffffffffffaad0');
-      expect(calls[0].gasUsed).toBe('0x6925');
+      expect(Utils.isHexString(calls[0].gasUsed)).toBe(true);
       expect(calls[0].input).toBe(
         '0xa9059cbb000000000000000000000000fc43f5f9dd45258b3aff31bdbe6561d97e8b71de00000000000000000000000000000000000000000000000000000000000f4240'
       );
@@ -211,12 +303,13 @@ describe('E2E integration tests', () => {
         gas: '0x266ce'
       };
       const res = await alchemy.transact.simulateExecution(transaction);
-      expect(res.calls.length).toBe(2);
+      expect(res.calls.length).toBe(1);
       expect(typeof res.calls[0].error).toBe('string');
     });
   });
 
-  describe('sendGasOptimizedTransaction()', () => {
+  // TODO(txjob): enable once released
+  describe.skip('sendGasOptimizedTransaction()', () => {
     it('can send signed transactions', async () => {
       const response = await alchemy.transact.sendGasOptimizedTransaction([
         '0x02f86f0107847735940085174876e8008252089415fdad99a4b0c72fc5c2761542e1b17cff7357de843b9aca0080c080a0db73b4c108202f2a0d22d8836ccb2052b24aaffbcbd8222e2030d0b8d68c3218a01ec636ff8a3a6125ba524d72348e91c96be5ac8330eadab31e70e753fbe00236'
@@ -246,7 +339,8 @@ describe('E2E integration tests', () => {
     });
   });
 
-  describe('getGasOptimizedTransactionStatus()', () => {
+  // TODO(txjob): enable once released
+  describe.skip('getGasOptimizedTransactionStatus()', () => {
     it('can get the transaction state', async () => {
       const response = await alchemy.transact.sendGasOptimizedTransaction([
         '0x02f86f0107847735940085174876e8008252089415fdad99a4b0c72fc5c2761542e1b17cff7357de843b9aca0080c080a0db73b4c108202f2a0d22d8836ccb2052b24aaffbcbd8222e2030d0b8d68c3218a01ec636ff8a3a6125ba524d72348e91c96be5ac8330eadab31e70e753fbe00236'

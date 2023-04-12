@@ -231,6 +231,19 @@ describe('NFT module', () => {
       );
     });
 
+    it('sets tokenType to undefined if tokenType is NOT_A_CONTRACT', async () => {
+      verifyNftMetadata(
+        await alchemy.nft.getNftMetadata(
+          contractAddress,
+          tokenId,
+          NftTokenType.NOT_A_CONTRACT
+        ),
+        expectedNft,
+        contractAddress,
+        tokenId
+      );
+    });
+
     it('surfaces errors', async () => {
       mock.reset();
       mock.onGet().reply(500, 'Internal Server Error');
@@ -1011,6 +1024,8 @@ describe('NFT module', () => {
     const tokenIdHex = '0x1b7';
     const tokenIdNumber = '439';
     const owners = ['0x1', '0x2', '0x3'];
+    const pageKey = 'abcdefg';
+    const pageSize = 500;
 
     beforeEach(() => {
       mock.onGet().reply(200, {
@@ -1019,7 +1034,10 @@ describe('NFT module', () => {
     });
 
     it('calls with the correct parameters', async () => {
-      await alchemy.nft.getOwnersForNft(contractAddress, tokenIdHex);
+      await alchemy.nft.getOwnersForNft(contractAddress, tokenIdHex, {
+        pageKey,
+        pageSize
+      });
       expect(mock.history.get.length).toEqual(1);
       expect(mock.history.get[0].params).toHaveProperty(
         'contractAddress',
@@ -1029,6 +1047,8 @@ describe('NFT module', () => {
         'tokenId',
         tokenIdNumber
       );
+      expect(mock.history.get[0].params).toHaveProperty('pageKey', pageKey);
+      expect(mock.history.get[0].params).toHaveProperty('pageSize', pageSize);
 
       const response = await alchemy.nft.getOwnersForNft(
         contractAddress,
@@ -1155,6 +1175,7 @@ describe('NFT module', () => {
     const contractAddress = '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d';
     const tokenId = '27';
     const name = 'NFT Contract Name';
+    const title = 'NFT Title';
     const symbol = 'XNO';
     const totalContractCount = 3;
     const totalSupply = '1492';
@@ -1195,7 +1216,8 @@ describe('NFT module', () => {
           totalSupply,
           rawOpenSeaContractMetadata,
           contractDeployer,
-          deployedBlockNumber
+          deployedBlockNumber,
+          title
         )
       ]
     };
@@ -1207,7 +1229,8 @@ describe('NFT module', () => {
     it.each<[keyof GetContractsForOwnerOptions, any]>([
       ['excludeFilters', [NftFilters.AIRDROPS]],
       ['includeFilters', [NftFilters.SPAM]],
-      ['pageKey', 'a-page-key']
+      ['pageKey', 'a-page-key'],
+      ['pageSize', 50]
     ])('calls with the correct parameters', async (fieldName, value) => {
       await alchemy.nft.getContractsForOwner(owner, {
         [fieldName]: value
@@ -1238,6 +1261,7 @@ describe('NFT module', () => {
       expect(result.contracts[2].address).toEqual(contractAddress);
       expect(result.contracts[2].tokenId).toEqual(tokenId);
       expect(result.contracts[2].name).toEqual(name);
+      expect(result.contracts[2].title).toEqual(title);
       expect(result.contracts[2].tokenType).toEqual(NftTokenType.ERC1155);
       expect(result.contracts[2].symbol).toEqual(symbol);
       expect(result.contracts[2].openSea).toEqual(expectedOpenseaMetadata);
